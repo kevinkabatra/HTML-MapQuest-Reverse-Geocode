@@ -1,0 +1,206 @@
+<!DOCTYPE HTML>
+<!--
+/* 
+ * Copyright (c) 2015, Kevin Kabatra 
+ * All rights reserved.
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * 
+ * 1. Redistributions of source code must retain the above copyright notice, 
+ *    this list of conditions and the following disclaimer. 
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+-->
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <title>Example Geolocation</title>
+        <!--Script for XMLHttpRequest. XMLHttpRequest object is used to exchange
+            data with a server. 
+        -->
+        <script>            
+            /**
+             * 
+             * @param {type} mUrl
+             * @returns {undefined}
+             */
+            function xmlHttpRequest(mUrl) {                
+                //Check for built in XMLHttpRequest Object
+		            if(window.XMLHttpRequest) {
+                    //code for IE7+, Firefox, Chrome, Opera, Safari
+                    mXmlhttp = new XMLHttpRequest();
+                } else {
+                    //code for IE6, IE5
+                    mXmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+                }
+                                
+                /**
+                 * When a request to a server is sent, we want to perform some
+                 * actions based on the response. The onreadystatechange event
+                 *  is triggered every time the readyState changes. The 
+                 *  readyState property holds the status of the XMLHttpRequest.
+                 *  readyStates: 
+                 *      0: request not initialized 
+                 *      1: server connection established
+                 *      2: request received 
+                 *      3: processing request 
+                 *      4: request finished and response is ready
+                 *  status:
+                 *      200: "OK"
+                 *      404: Page not found
+                 */
+                mXmlhttp.onreadystatechange = function() {
+                    if(mXmlhttp.readyState === 4 && mXmlhttp.status === 200) {
+                        var responseText = mXmlhttp.responseText.substring(14,
+                                mXmlhttp.responseText.length - 2);
+                        json = JSON.parse(responseText);
+                        var mOutput = json.results[0].locations[0].adminArea5 
+                                + ", " + json.results[0].locations[0].adminArea3
+                                + " "+ json.results[0].locations[0].adminArea1;
+                        showMapQuestLocation(mOutput);
+                    }
+                };
+                
+                /** 
+                 * Specifies the type of request, the URL, and if the request
+                 * should be handled asynchronously or not.
+                 *     open(method,url,async)
+                 *     method: the type of request: GET or POST
+                 *     url: the location of the file on the server
+                 *     async: true (asynchronous) or false (synchronous) 
+                 */
+                mXmlhttp.open("GET", mUrl, true);
+                
+                /**
+                 * Adds HTTP headers to the request.
+                 * setRequestHeader(header,value)
+                 *     header: specifies the header name
+                 *     value: specifies the header value 
+                 */
+                mXmlhttp.setRequestHeader("Content-type",
+                        "application/x-www-form-urlencoded");
+                        
+                /**
+                 * Sends the request off to the server.
+                 *     send(string)
+                 *     string: Only used for POST requests 
+                 */
+                mXmlhttp.send();		                                                
+            }                        
+        </script>           
+    </head>
+    <body>
+        <h1>Example Reverse Geocoding</h1>
+        <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            From Wikipedia, the free encyclopedia: "Reverse Geocoding is the 
+            process of back (reverse) coding of a point location (latitude, 
+            longitude) to a readable address or place name. This permits the 
+            identification of nearby street addresses, places, and/or area 
+            subdivisions such as neighborhoods, county, state, or country. 
+            Combined with Geocoding and routing services, reverse Geocoding is 
+            a critical component of mobile location-based services and Enhanced 
+            911 to convert a coordinate obtained by GPS to a readable street 
+            address which is easier to understand by the end user." 
+            <br><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            This example combines the HTML Geolocation API with MapQuest's 
+            Open Geocoding Service. The HTML Geolocation API always responds
+            with the user's longitude and latitude coordinates. This response
+            is then sent to MapQuest, which will reply with a JSON message that
+            contains a readable address.
+        </p>
+        <div>
+            <p id="latlong">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                Your latitude and longitude according to HTML Geolocation is: 
+            </p>
+            <p id="address">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                According to MapQuest, you are in: </p>
+        </div>
+        <p>Geocoding Courtesy of 
+            <a href="http://www.mapquest.com/" 
+               target="_blank">MapQuest</a> 
+            <img src=
+                 "http://developer.mapquest.com/content/osm/mq_logo.png"
+                 alt="MapQuest">
+        </p>        
+        <!--Script for HTML Geolocation. The HTML Geolocation API is used to 
+            get the geographical position of a user. Since this can compromise
+            user privacy, the position is not available unless the user 
+            approves it. 
+        -->
+        <script>
+            var latLong = document.getElementById('latlong');
+            getLocation();
+            
+            function getLocation() {
+                if (navigator.geolocation) {
+                    navigator.geolocation
+                            .getCurrentPosition(showPosition, showError);
+                } else { 
+                    latLong.innerHTML = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
+                                + "Geolocation is not supported by this "
+                                + "browser. Browser support: *The numbers "
+                                + "specify the first browser version that " 
+                                + "fully supports Geolocation* Chrome: 5.0, " 
+                                + "Internet Explorer: 9.0, Firefox: 3.5, "
+                                + "Safari: 5.0, Opera: 16.0";
+                }
+            }
+            
+            function showPosition(mPosition) {
+                latLong.innerHTML = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Your " 
+                        + "latitude and longitude according to HTML " 
+                        + "Geolocation is: " + mPosition.coords.latitude + "," 
+                        + mPosition.coords.longitude + ".";
+                xmlHttpRequest("http://open.mapquestapi.com/geocoding/v1/reverse?"                           
+                    + "key=Fmjtd%7Cluu82lutl9%2Cbs%3Do5-948aq0"
+                    + "&callback=renderReverse"
+                    + "&location=" + mPosition.coords.latitude
+                    + "," + mPosition.coords.longitude);
+            }
+
+            function showError(mError) {
+                switch(mError.code) {
+                    case mError.PERMISSION_DENIED:
+                        latLong.innerHTML = "You have denied the request for "
+                                + "Geolocation. Therefore I cannot determine "
+                                + "your location.";
+                        break;
+                    case mError.POSITION_UNAVAILABLE:
+                        latLong.innerHTML = "I am not sure why, but your " 
+                                + "location information is unavailable. " 
+                                + "Therefore I cannot determine your location.";
+                        break;
+                    case mError.TIMEOUT:
+                        latLong.innerHTML = "The request to get user location "
+                                + "timed out. Therefore I cannot determine "
+                                + "your location.";
+                        break;
+                    case mError.UNKNOWN_ERROR:
+                        latLong.innerHTML = "An unknown error occurred. "
+                                + "Therefore I cannot determine your location.";
+                        break;
+                }
+            }
+            
+            function showMapQuestLocation(mPosition) {                
+                document.getElementById('address').innerHTML = 
+                        "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;According to MapQuest, "
+                        + "you are in: " + mPosition + ".";
+            }
+        </script>
+    </body>
+</html>
